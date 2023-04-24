@@ -14,32 +14,41 @@ public class TypedText : MonoBehaviour
 
     //This delegate gets called after the user skips the autotyping or it completes normally
     public delegate void OnTypingDone();
-    public OnTypingDone onTypingDone; 
+    public OnTypingDone onTypingDone;
 
     public string TestString; //Only for testing purposes
 
-    string textToWrite;
+    private string textToWrite;
     private IEnumerator activeCoroutine;
+    private bool stillTyping = true;
 
-    private void Start()
-    { //For testing purposes only right now
-        StartTyping(TestString);
+    private void Awake()
+    {
+        onTypingDone = new OnTypingDone(OnTextFinished);
     }
 
     private void Update()
     {
         if (Input.GetButtonDown("Fire1"))
         {
-            StopCoroutine(activeCoroutine);
-            TextComponent.text = textToWrite;
-            if (onTypingDone != null)
-                onTypingDone(); //Call the delegate if they skip the typing
+            if (stillTyping) {
+                StopCoroutine(activeCoroutine);
+                TextComponent.text = textToWrite;
+                if (onTypingDone != null)
+                    onTypingDone(); //Call the delegate if they skip the typing
+            }
+            else
+            { //If you aren't typing then the window is just chilling there waiting to be closed for slow readers and the impaired
+
+            }
         }
     }
 
     public void StartTyping(string text)
     {
         //Clear the existing text before we start writing and display the component's parent object
+        stillTyping = true;
+        this.gameObject.SetActive(true);
         TextComponent.text = "";
         textToWrite = text;
         activeCoroutine = WriteText();
@@ -57,7 +66,12 @@ public class TypedText : MonoBehaviour
     }
 
     private void OnTextFinished()
-    {
+    { //This is where I would like to implement the click to close window behavior
+        stillTyping = false;
+    }
 
+    private void OnCleanup()
+    { //As far as I know, cleaning up only involves hiding the window for now, and possibly targeting the inspection window
+        this.gameObject.SetActive(false);
     }
 }
